@@ -10,6 +10,7 @@ import { asyncHandler } from './utils/asyncHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { validateRequest } from './middleware/validateRequest.js';
 import { prisma } from './db/prisma.js';
+import botRoutes from './routes/bot.routes.js';
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
-// Enhanced Health Check Endpoint with Database Probe
+// Health check endpoint with database probe
 app.get(
   '/health',
   asyncHandler(async (_req: Request, res: Response) => {
@@ -36,7 +37,6 @@ app.get(
     let isHealthy = false;
 
     try {
-      // Execute simple raw query to probe PostgreSQL connection
       await prisma.$queryRaw`SELECT 1`;
       dbStatus = 'connected';
       isHealthy = true;
@@ -53,6 +53,9 @@ app.get(
     });
   })
 );
+
+// Mount API v1 Routes
+app.use('/api/v1/bot', botRoutes);
 
 // Test Zod Schema
 const testSchema = z.object({

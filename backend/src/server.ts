@@ -1,8 +1,9 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { ETHIOPIAN_REGIONS } from '@zero-delala/shared';
+import { logger } from './utils/logger';
 
 dotenv.config();
 
@@ -13,8 +14,15 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-// Basic Isolated Health Check Endpoint
-app.get('/health', (req: Request, res: Response) => {
+// Express HTTP request logger middleware
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  logger.info(`HTTP ${req.method} ${req.url}`);
+  next();
+});
+
+// Health check endpoint
+app.get('/health', (_req: Request, res: Response) => {
+  logger.info('Health check probe requested');
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -23,5 +31,5 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`[Zero Delala Backend] Server running on http://localhost:${PORT}`);
+  logger.info(`[Zero Delala Backend] Server running on http://localhost:${PORT}`);
 });

@@ -2,11 +2,13 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import { z } from 'zod';
 import { ETHIOPIAN_REGIONS } from '@zero-delala/shared';
 import { logger } from './utils/logger.js';
 import { AppError } from './utils/AppError.js';
 import { asyncHandler } from './utils/asyncHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { validateRequest } from './middleware/validateRequest.js';
 
 dotenv.config();
 
@@ -30,6 +32,24 @@ app.get('/health', (_req: Request, res: Response) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     supportedRegions: ETHIOPIAN_REGIONS.length
+  });
+});
+
+// Test Zod Schema
+const testSchema = z.object({
+  body: z.object({
+    title: z.string().min(5, 'Title must be at least 5 characters long'),
+    price: z.number().positive('Price must be a positive number'),
+    region: z.string().min(1, 'Region is required')
+  })
+});
+
+// Validation Test Endpoint
+app.post('/validation-test', validateRequest(testSchema), (req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: 'Payload validated successfully',
+    data: req.body
   });
 });
 

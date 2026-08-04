@@ -9,6 +9,7 @@ import { AppError } from './utils/AppError.js';
 import { asyncHandler } from './utils/asyncHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { validateRequest } from './middleware/validateRequest.js';
+import { verifyTelegramInitData } from './utils/telegramAuth.js';
 import { prisma } from './db/prisma.js';
 import botRoutes from './routes/bot.routes.js';
 
@@ -56,6 +57,25 @@ app.get(
 
 // Mount API v1 Routes
 app.use('/api/v1/bot', botRoutes);
+
+// Isolated Telegram InitData Signature Test Endpoint
+app.post(
+  '/api/v1/auth/test-initdata',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { initData, botToken } = req.body;
+
+    if (!initData || !botToken) {
+      throw new AppError('Both initData and botToken are required for testing', 400, 'BAD_REQUEST');
+    }
+
+    const verified = verifyTelegramInitData(initData, botToken);
+    res.status(200).json({
+      success: true,
+      message: 'Telegram initData signature verified successfully',
+      data: verified
+    });
+  })
+);
 
 // Test Zod Schema
 const testSchema = z.object({

@@ -10,7 +10,9 @@
     "bot"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run build --workspaces",
+    "format": "prettier --write \"./**/*.{ts,tsx,js,json,css,md}\"",
+    "format:check": "prettier --check \"./**/*.{ts,tsx,js,json,css,md}\""
   },
   "keywords": [
     "telegram-mini-app",
@@ -20,6 +22,7 @@
     "prisma",
     "typescript"
   ],
-  "author": "",
-  "license": "ISC"
+  "devDependencies": {
+    "prettier": "^3.9.6"
+  }
 }

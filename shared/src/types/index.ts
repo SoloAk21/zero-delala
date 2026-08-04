@@ -1,7 +1,4 @@
-import {
-  ETHIOPIAN_REGIONS,
-  ADDIS_ABABA_SUBCITIES,
-} from "../constants/ethiopia.js";
+import { ETHIOPIAN_REGIONS, ADDIS_ABABA_SUBCITIES } from '../constants/ethiopia.js';
 
 export type EthiopianRegion = (typeof ETHIOPIAN_REGIONS)[number];
 export type AddisAbabaSubcity = (typeof ADDIS_ABABA_SUBCITIES)[number];

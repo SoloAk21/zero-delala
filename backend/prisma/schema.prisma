@@ -1,0 +1,99 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+enum UserRole {
+  BUYER
+  OWNER
+  AGENT
+  ADMIN
+}
+
+enum ListingType {
+  FOR_SALE
+  FOR_RENT
+  LOOKING_TO_BUY
+  LOOKING_TO_RENT
+}
+
+enum PropertyCategory {
+  RESIDENTIAL
+  COMMERCIAL
+  LAND
+}
+
+enum PropertyStatus {
+  DRAFT
+  PENDING_VERIFICATION
+  ACTIVE
+  SOLD
+  RENTED
+  DEACTIVATED
+}
+
+model User {
+  id              String      @id @default(uuid())
+  telegramId      BigInt      @unique
+  username        String?
+  firstName       String
+  lastName        String?
+  phoneNumber     String?     @unique
+  isVerifiedAgent Boolean     @default(false)
+  role            UserRole    @default(BUYER)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  properties      Property[]
+
+  @@map("users")
+}
+
+model Location {
+  id          String   @id @default(uuid())
+  region      String
+  subcity     String?
+  woreda      String?
+  kebele      String?
+  latitude    Float?
+  longitude   Float?
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  propertyId  String   @unique
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("locations")
+}
+
+model Property {
+  id            String           @id @default(uuid())
+  title         String
+  titleAmharic  String?
+  description   String
+  listingType   ListingType
+  category      PropertyCategory
+  status        PropertyStatus   @default(ACTIVE)
+  price         Float
+  isNegotiable  Boolean          @default(true)
+  areaSqm       Float
+  bedrooms      Int?             @default(0)
+  bathrooms     Int?             @default(0)
+  images        String[]         @default([])
+  amenities     String[]         @default([])
+  featured      Boolean          @default(false)
+  viewsCount    Int              @default(0)
+  
+  ownerId       String
+  owner         User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  location      Location?
+  
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@map("properties")
+}

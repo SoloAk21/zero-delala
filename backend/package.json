@@ -15,10 +15,12 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.1.2",
+    "prisma": "^6.19.3",
     "tsx": "^4.23.5",
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "@zero-delala/shared": "*",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",

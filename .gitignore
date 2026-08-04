@@ -34,3 +34,4 @@ Thumbs.db
 
 # Prisma / Uploads
 /backend/uploads/
+/backend/src/generated/

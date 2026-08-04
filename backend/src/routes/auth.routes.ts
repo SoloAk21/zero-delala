@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { validateRequest } from '../middleware/validateRequest.js';
 import { requireAuth } from '../middleware/auth.js';
-import { telegramLoginSchema } from '../schemas/auth.schema.js';
-import { telegramLogin } from '../controllers/auth.controller.js';
+import { telegramLoginSchema, verifyPhoneSchema } from '../schemas/auth.schema.js';
+import { telegramLogin, verifyPhone } from '../controllers/auth.controller.js';
 import { ApiResponse } from '@zero-delala/shared';
 
 const router = Router();
@@ -23,5 +23,8 @@ router.get('/me', requireAuth, (req: Request, res: Response) => {
 
   res.status(200).json(response);
 });
+
+// Protected Endpoint: POST /api/v1/auth/verify-phone
+router.post('/verify-phone', requireAuth, validateRequest(verifyPhoneSchema), verifyPhone);
 
 export default router;

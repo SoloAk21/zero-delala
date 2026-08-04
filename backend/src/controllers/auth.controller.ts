@@ -5,7 +5,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../utils/AppError.js';
 import { verifyTelegramInitData } from '../utils/telegramAuth.js';
 import { generateToken } from '../utils/jwt.js';
-import { TelegramLoginInput } from '../schemas/auth.schema.js';
+import { TelegramLoginInput, VerifyPhoneInput } from '../schemas/auth.schema.js';
 
 export const telegramLogin = asyncHandler(
   async (req: Request<{}, {}, TelegramLoginInput>, res: Response) => {
@@ -35,7 +35,6 @@ export const telegramLogin = asyncHandler(
 
     const tgUser = verifiedUser.user;
 
-    // Upsert User in PostgreSQL
     const user = await prisma.user.upsert({
       where: {
         telegramId: BigInt(tgUser.id)
@@ -71,6 +70,36 @@ export const telegramLogin = asyncHandler(
         token,
         user: serializedUser
       }
+    };
+
+    res.status(200).json(response);
+  }
+);
+
+export const verifyPhone = asyncHandler(
+  async (req: Request<{}, {}, VerifyPhoneInput>, res: Response) => {
+    const { phoneNumber, isAgent } = req.body;
+    const userId = req.user!.id;
+
+    const role = isAgent ? 'AGENT' : req.user!.role === 'BUYER' ? 'OWNER' : req.user!.role;
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        phoneNumber,
+        isVerifiedAgent: isAgent ? true : req.user!.isVerifiedAgent,
+        role
+      }
+    });
+
+    const serializedUser = {
+      ...user,
+      telegramId: user.telegramId.toString()
+    };
+
+    const response: ApiResponse<typeof serializedUser> = {
+      success: true,
+      data: serializedUser
     };
 
     res.status(200).json(response);

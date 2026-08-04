@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Shared TypeScript types, Zod schemas, and constants for Zero Delala",
   "main": "dist/index.js",
+  "module": "./dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",

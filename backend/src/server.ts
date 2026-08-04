@@ -9,6 +9,7 @@ import { AppError } from './utils/AppError.js';
 import { asyncHandler } from './utils/asyncHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { validateRequest } from './middleware/validateRequest.js';
+import { prisma } from './db/prisma.js';
 
 dotenv.config();
 
@@ -25,15 +26,33 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
-// Health check endpoint
-app.get('/health', (_req: Request, res: Response) => {
-  logger.info('Health check probe requested');
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    supportedRegions: ETHIOPIAN_REGIONS.length
-  });
-});
+// Enhanced Health Check Endpoint with Database Probe
+app.get(
+  '/health',
+  asyncHandler(async (_req: Request, res: Response) => {
+    logger.info('Health check probe requested');
+
+    let dbStatus = 'disconnected';
+    let isHealthy = false;
+
+    try {
+      // Execute simple raw query to probe PostgreSQL connection
+      await prisma.$queryRaw`SELECT 1`;
+      dbStatus = 'connected';
+      isHealthy = true;
+    } catch (error) {
+      logger.warn(`Database connection check failed: ${(error as Error).message}`);
+    }
+
+    const statusCode = isHealthy ? 200 : 503;
+    res.status(statusCode).json({
+      status: isHealthy ? 'ok' : 'degraded',
+      timestamp: new Date().toISOString(),
+      database: dbStatus,
+      supportedRegions: ETHIOPIAN_REGIONS.length
+    });
+  })
+);
 
 // Test Zod Schema
 const testSchema = z.object({

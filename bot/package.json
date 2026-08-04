@@ -1,0 +1,26 @@
+{
+  "name": "@zero-delala/bot",
+  "version": "1.0.0",
+  "description": "Telegram Bot service for Zero Delala",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "tsx": "^4.23.5",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@zero-delala/shared": "^1.0.0",
+    "axios": "^1.19.0",
+    "dotenv": "^17.4.2",
+    "telegraf": "^4.16.3"
+  }
+}

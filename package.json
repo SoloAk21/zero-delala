@@ -1,0 +1,25 @@
+{
+  "name": "zero-delala",
+  "version": "1.0.0",
+  "description": "Enterprise-grade Real Estate Telegram Mini App for Ethiopia",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend",
+    "bot"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "telegram-mini-app",
+    "ethiopia-real-estate",
+    "express",
+    "react",
+    "prisma",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC"
+}

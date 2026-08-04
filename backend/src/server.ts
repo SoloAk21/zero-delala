@@ -12,6 +12,7 @@ import { validateRequest } from './middleware/validateRequest.js';
 import { verifyTelegramInitData } from './utils/telegramAuth.js';
 import { prisma } from './db/prisma.js';
 import botRoutes from './routes/bot.routes.js';
+import { generateToken, verifyToken } from './utils/jwt.js';
 
 dotenv.config();
 
@@ -100,6 +101,28 @@ app.get(
   '/error-test',
   asyncHandler(async () => {
     throw new AppError('This is a test operational error', 400, 'BAD_REQUEST');
+  })
+);
+
+// Isolated JWT Generation & Verification Test Endpoint
+app.post(
+  '/api/v1/auth/test-jwt',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { userId, telegramId, role } = req.body;
+
+    // 1. Generate JWT
+    const token = generateToken({ userId, telegramId, role });
+
+    // 2. Verify JWT immediately
+    const decoded = verifyToken(token);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        token,
+        decoded
+      }
+    });
   })
 );
 

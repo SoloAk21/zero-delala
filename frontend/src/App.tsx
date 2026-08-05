@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TelegramProvider, useTelegram } from './providers/TelegramProvider';
-import { useAuthStore } from './store/useAuthStore';
+import { AppLayout } from './components/layout/AppLayout';
 import { useAppStore } from './store/useAppStore';
-import { Building2, Globe, Sparkles, UserCheck } from 'lucide-react';
+import { useAuthStore } from './store/useAuthStore';
+import { Home, Search, PlusCircle, Bookmark, User, ShieldCheck, Sparkles } from 'lucide-react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,15 +14,10 @@ const queryClient = new QueryClient({
   }
 });
 
-function Dashboard() {
-  const { hapticImpact } = useTelegram();
-  const { language, setLanguage } = useAppStore();
+function MainView() {
+  const { activeTab } = useAppStore();
   const { isAuthenticated, setAuth, logout, user } = useAuthStore();
-
-  const toggleLanguage = () => {
-    hapticImpact('light');
-    setLanguage(language === 'am' ? 'en' : 'am');
-  };
+  const { hapticImpact } = useTelegram();
 
   const simulateLogin = () => {
     hapticImpact('medium');
@@ -37,70 +33,86 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6">
-      <div className="max-w-md w-full bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          <Building2 className="w-8 h-8" />
-        </div>
-
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Zero Delala (ዜሮ ደላላ)</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            {language === 'am'
-              ? 'የኢትዮጵያ የቤት እና መሬት መተግበሪያ'
-              : 'Ethiopian Real Estate Telegram Mini App'}
+    <div className="space-y-4">
+      {activeTab === 'home' && (
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">
+          <div className="w-12 h-12 mx-auto rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+            <Home className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-white">Home View / ዋና ገጽ</h2>
+          <p className="text-xs text-slate-400">
+            Discover verified listings across Ethiopia without commissions.
           </p>
         </div>
+      )}
 
-        <div className="pt-2 border-t border-slate-700/50 flex flex-col gap-2 text-left">
-          <div className="flex items-center justify-between bg-slate-900/50 p-3 rounded-lg border border-slate-700/30">
-            <span className="text-xs text-slate-400 flex items-center gap-1.5">
-              <Globe className="w-4 h-4 text-amber-400" /> Language
-            </span>
-            <button
-              onClick={toggleLanguage}
-              className="text-xs font-semibold text-amber-400 bg-amber-500/10 px-2 py-1 rounded cursor-pointer hover:bg-amber-500/20 transition-all"
-            >
-              {language === 'am' ? 'አማርኛ (AM)' : 'English (EN)'}
-            </button>
+      {activeTab === 'search' && (
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">
+          <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
+            <Search className="w-6 h-6" />
           </div>
-
-          <div className="flex items-center justify-between bg-slate-900/50 p-3 rounded-lg border border-slate-700/30">
-            <span className="text-xs text-slate-400 flex items-center gap-1.5">
-              <UserCheck className="w-4 h-4 text-emerald-400" /> Auth Session
-            </span>
-            <span
-              className={`text-xs font-semibold px-2 py-1 rounded ${isAuthenticated ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-400 bg-slate-700/50'}`}
-            >
-              {isAuthenticated ? 'Authenticated' : 'Guest Mode'}
-            </span>
-          </div>
+          <h2 className="text-lg font-bold text-white">Search & Filter / ፈልግ</h2>
+          <p className="text-xs text-slate-400">
+            Search properties by Regions, Addis Ababa Sub-Cities, and Prices.
+          </p>
         </div>
+      )}
 
-        {!isAuthenticated ? (
-          <button
-            onClick={simulateLogin}
-            className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition-all text-slate-950 font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer"
-          >
-            <Sparkles className="w-4 h-4" /> Simulate Auth Session
-          </button>
-        ) : (
-          <div className="space-y-2 pt-2">
-            <p className="text-xs text-emerald-400">
-              Logged in: {user?.firstName} {user?.lastName} (@{user?.username}) [{user?.role}]
-            </p>
-            <button
-              onClick={() => {
-                hapticImpact('heavy');
-                logout();
-              }}
-              className="w-full py-2 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-semibold rounded-lg text-xs transition-all cursor-pointer"
-            >
-              Logout Session
-            </button>
+      {activeTab === 'post' && (
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">
+          <div className="w-12 h-12 mx-auto rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
+            <PlusCircle className="w-6 h-6" />
           </div>
-        )}
-      </div>
+          <h2 className="text-lg font-bold text-white">Post Property / ለጥፍ</h2>
+          <p className="text-xs text-slate-400">
+            List residential, commercial, or land properties directly.
+          </p>
+        </div>
+      )}
+
+      {activeTab === 'saved' && (
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">
+          <div className="w-12 h-12 mx-auto rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+            <Bookmark className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-white">Saved Properties / የተቀመጡ</h2>
+          <p className="text-xs text-slate-400">View bookmarked real estate listings.</p>
+        </div>
+      )}
+
+      {activeTab === 'profile' && (
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">
+          <div className="w-12 h-12 mx-auto rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+            <User className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-white">User Profile / መገለጫ</h2>
+
+          {!isAuthenticated ? (
+            <button
+              onClick={simulateLogin}
+              className="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/20"
+            >
+              <Sparkles className="w-4 h-4" /> Login Session
+            </button>
+          ) : (
+            <div className="space-y-2 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400">
+                <ShieldCheck className="w-4 h-4" /> {user?.firstName} {user?.lastName} ({user?.role}
+                )
+              </div>
+              <button
+                onClick={() => {
+                  hapticImpact('heavy');
+                  logout();
+                }}
+                className="w-full py-2 px-3 bg-red-500/10 text-red-400 border border-red-500/20 font-semibold rounded-lg text-xs cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -109,7 +121,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TelegramProvider>
-        <Dashboard />
+        <AppLayout>
+          <MainView />
+        </AppLayout>
       </TelegramProvider>
     </QueryClientProvider>
   );

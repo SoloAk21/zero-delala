@@ -60,5 +60,12 @@ export const getPropertiesQuerySchema = z.object({
   })
 });
 
+export const getPropertyByIdSchema = z.object({
+  params: z.object({
+    id: z.string().uuid('Invalid property ID format')
+  })
+});
+
 export type CreatePropertyInput = z.infer<typeof createPropertySchema>['body'];
 export type GetPropertiesQueryInput = z.infer<typeof getPropertiesQuerySchema>['query'];
+export type GetPropertyByIdParamsInput = z.infer<typeof getPropertyByIdSchema>['params'];

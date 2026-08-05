@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ApiResponse } from '@zero-delala/shared';
 import { prisma } from '../db/prisma.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { AppError } from '../utils/AppError.js';
 import { CreatePropertyInput, GetPropertiesQueryInput } from '../schemas/property.schema.js';
 
 export const createProperty = asyncHandler(
@@ -162,6 +163,45 @@ export const getProperties = asyncHandler(async (req: Request, res: Response) =>
         totalPages: Math.ceil(total / limit)
       }
     }
+  };
+
+  res.status(200).json(response);
+});
+
+export const getPropertyById = asyncHandler(async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+
+  const existingProperty = await prisma.property.findUnique({
+    where: { id }
+  });
+
+  if (!existingProperty || existingProperty.status === 'DEACTIVATED') {
+    throw new AppError('Property listing not found or inactive', 404, 'NOT_FOUND');
+  }
+
+  // Increment view count atomically
+  const updatedProperty = await prisma.property.update({
+    where: { id },
+    data: {
+      viewsCount: { increment: 1 }
+    },
+    include: {
+      location: true,
+      owner: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          phoneNumber: true,
+          isVerifiedAgent: true
+        }
+      }
+    }
+  });
+
+  const response: ApiResponse<typeof updatedProperty> = {
+    success: true,
+    data: updatedProperty
   };
 
   res.status(200).json(response);

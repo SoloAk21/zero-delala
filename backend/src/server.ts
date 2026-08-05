@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import path from 'path';
 import { z } from 'zod';
 import { ETHIOPIAN_REGIONS } from '@zero-delala/shared';
 import { logger } from './utils/logger.js';
@@ -15,15 +16,23 @@ import { prisma } from './db/prisma.js';
 import botRoutes from './routes/bot.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import propertyRoutes from './routes/property.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false // Allow static /uploads images cross-origin
+  })
+);
 app.use(cors());
 app.use(express.json());
+
+// Serve uploads directory statically
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Express HTTP request logger
 app.use((req: Request, _res: Response, next: NextFunction) => {
@@ -62,6 +71,7 @@ app.get(
 app.use('/api/v1/bot', botRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/properties', propertyRoutes);
+app.use('/api/v1/upload', uploadRoutes);
 
 // Isolated Telegram InitData Signature Test Endpoint
 app.post(

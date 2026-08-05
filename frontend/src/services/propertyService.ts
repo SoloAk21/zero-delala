@@ -2,7 +2,7 @@ import { apiClient } from './api';
 import { ApiResponse } from '@zero-delala/shared';
 
 export interface PropertyLocation {
-  id: string;
+  id?: string;
   region: string;
   subcity?: string | null;
   woreda?: string | null;
@@ -55,6 +55,28 @@ export interface GetPropertiesParams {
   limit?: number;
 }
 
+export interface CreatePropertyPayload {
+  title: string;
+  titleAmharic?: string;
+  description: string;
+  listingType: 'FOR_SALE' | 'FOR_RENT';
+  category: 'RESIDENTIAL' | 'COMMERCIAL' | 'LAND';
+  price: number;
+  isNegotiable?: boolean;
+  areaSqm: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  amenities?: string[];
+  images?: string[];
+  location: {
+    region: string;
+    subcity?: string;
+    woreda?: string;
+    kebele?: string;
+    address?: string;
+  };
+}
+
 export const fetchProperties = async (params?: GetPropertiesParams) => {
   const response = await apiClient.get<ApiResponse<{ properties: Property[]; pagination: any }>>(
     '/properties',
@@ -67,5 +89,10 @@ export const fetchProperties = async (params?: GetPropertiesParams) => {
 
 export const fetchPropertyById = async (id: string) => {
   const response = await apiClient.get<ApiResponse<Property>>(`/properties/${id}`);
+  return response.data.data;
+};
+
+export const createPropertyApi = async (payload: CreatePropertyPayload) => {
+  const response = await apiClient.post<ApiResponse<Property>>('/properties', payload);
   return response.data.data;
 };

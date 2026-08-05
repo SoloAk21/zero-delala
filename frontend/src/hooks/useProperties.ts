@@ -1,8 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchProperties,
   fetchPropertyById,
-  GetPropertiesParams
+  createPropertyApi,
+  GetPropertiesParams,
+  CreatePropertyPayload
 } from '../services/propertyService';
 
 export const usePropertiesQuery = (params?: GetPropertiesParams) => {
@@ -17,5 +19,16 @@ export const usePropertyDetailsQuery = (id: string | null) => {
     queryKey: ['property', id],
     queryFn: () => fetchPropertyById(id!),
     enabled: !!id
+  });
+};
+
+export const useCreatePropertyMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreatePropertyPayload) => createPropertyApi(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    }
   });
 };

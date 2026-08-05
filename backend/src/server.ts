@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 import { ETHIOPIAN_REGIONS } from '@zero-delala/shared';
-
 import { logger } from './utils/logger.js';
 import { AppError } from './utils/AppError.js';
 import { asyncHandler } from './utils/asyncHandler.js';
@@ -13,9 +12,9 @@ import { validateRequest } from './middleware/validateRequest.js';
 import { verifyTelegramInitData } from './utils/telegramAuth.js';
 import { generateToken, verifyToken } from './utils/jwt.js';
 import { prisma } from './db/prisma.js';
-
 import botRoutes from './routes/bot.routes.js';
 import authRoutes from './routes/auth.routes.js';
+import propertyRoutes from './routes/property.routes.js';
 
 dotenv.config();
 
@@ -26,11 +25,13 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
+// Express HTTP request logger
 app.use((req: Request, _res: Response, next: NextFunction) => {
   logger.info(`HTTP ${req.method} ${req.url}`);
   next();
 });
 
+// Health check endpoint with database probe
 app.get(
   '/health',
   asyncHandler(async (_req: Request, res: Response) => {
@@ -57,9 +58,12 @@ app.get(
   })
 );
 
+// Mount API v1 Routes
 app.use('/api/v1/bot', botRoutes);
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/properties', propertyRoutes);
 
+// Isolated Telegram InitData Signature Test Endpoint
 app.post(
   '/api/v1/auth/test-initdata',
   asyncHandler(async (req: Request, res: Response) => {
@@ -78,13 +82,12 @@ app.post(
   })
 );
 
+// Isolated JWT Generation & Verification Test Endpoint
 app.post(
   '/api/v1/auth/test-jwt',
   asyncHandler(async (req: Request, res: Response) => {
     const { userId, telegramId, role } = req.body;
-
     const token = generateToken({ userId, telegramId, role });
-
     const decoded = verifyToken(token);
 
     res.status(200).json({
@@ -97,6 +100,7 @@ app.post(
   })
 );
 
+// Test Zod Schema
 const testSchema = z.object({
   body: z.object({
     title: z.string().min(5, 'Title must be at least 5 characters long'),
@@ -105,6 +109,7 @@ const testSchema = z.object({
   })
 });
 
+// Validation Test Endpoint
 app.post('/validation-test', validateRequest(testSchema), (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
@@ -113,6 +118,7 @@ app.post('/validation-test', validateRequest(testSchema), (req: Request, res: Re
   });
 });
 
+// Isolated Error Test Endpoint
 app.get(
   '/error-test',
   asyncHandler(async () => {
@@ -120,10 +126,12 @@ app.get(
   })
 );
 
+// 404 Fallback for undefined routes
 app.use('*', (req: Request, _res: Response, next: NextFunction) => {
   next(new AppError(`Route ${req.originalUrl} not found`, 404, 'NOT_FOUND'));
 });
 
+// Centralized Error Middleware (Must be last)
 app.use(errorHandler);
 
 app.listen(PORT, () => {

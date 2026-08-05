@@ -2,22 +2,19 @@ import React from 'react';
 import { Home, Search, PlusCircle, Bookmark, User } from 'lucide-react';
 import { useAppStore, NavigationTab } from '../../store/useAppStore';
 import { useTelegram } from '../../providers/TelegramProvider';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export const BottomNav: React.FC = () => {
-  const { activeTab, setActiveTab, language } = useAppStore();
+  const { activeTab, setActiveTab } = useAppStore();
   const { hapticImpact } = useTelegram();
+  const { t } = useTranslation();
 
-  const navItems: {
-    id: NavigationTab;
-    labelAm: string;
-    labelEn: string;
-    icon: React.ElementType;
-  }[] = [
-    { id: 'home', labelAm: 'ዋና ገጽ', labelEn: 'Home', icon: Home },
-    { id: 'search', labelAm: 'ፈልግ', labelEn: 'Search', icon: Search },
-    { id: 'post', labelAm: 'ለጥፍ', labelEn: 'Post', icon: PlusCircle },
-    { id: 'saved', labelAm: 'የተቀመጡ', labelEn: 'Saved', icon: Bookmark },
-    { id: 'profile', labelAm: 'መገለጫ', labelEn: 'Profile', icon: User }
+  const navItems: { id: NavigationTab; label: string; icon: React.ElementType }[] = [
+    { id: 'home', label: t.nav.home, icon: Home },
+    { id: 'search', label: t.nav.search, icon: Search },
+    { id: 'post', label: t.nav.post, icon: PlusCircle },
+    { id: 'saved', label: t.nav.saved, icon: Bookmark },
+    { id: 'profile', label: t.nav.profile, icon: User }
   ];
 
   const handleTabChange = (tab: NavigationTab) => {
@@ -31,7 +28,6 @@ export const BottomNav: React.FC = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
-          const label = language === 'am' ? item.labelAm : item.labelEn;
 
           return (
             <button
@@ -50,7 +46,7 @@ export const BottomNav: React.FC = () => {
                   className={`w-5 h-5 ${isActive ? 'text-emerald-400 stroke-[2.5]' : 'stroke-[1.75]'}`}
                 />
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight font-medium">{label}</span>
+              <span className="text-[10px] mt-0.5 tracking-tight font-medium">{item.label}</span>
             </button>
           );
         })}

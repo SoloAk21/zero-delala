@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TelegramProvider, useTelegram } from './providers/TelegramProvider';
 import { AppLayout } from './components/layout/AppLayout';
+import { HomeScreen } from './components/home/HomeScreen';
 import { useAppStore } from './store/useAppStore';
 import { useAuthStore } from './store/useAuthStore';
-import { Home, Search, PlusCircle, Bookmark, User, ShieldCheck, Sparkles } from 'lucide-react';
+import { Search, PlusCircle, Bookmark, User, ShieldCheck, Sparkles } from 'lucide-react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,18 +34,8 @@ function MainView() {
   };
 
   return (
-    <div className="space-y-4">
-      {activeTab === 'home' && (
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">
-          <div className="w-12 h-12 mx-auto rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-            <Home className="w-6 h-6" />
-          </div>
-          <h2 className="text-lg font-bold text-white">Home View / ዋና ገጽ</h2>
-          <p className="text-xs text-slate-400">
-            Discover verified listings across Ethiopia without commissions.
-          </p>
-        </div>
-      )}
+    <div>
+      {activeTab === 'home' && <HomeScreen />}
 
       {activeTab === 'search' && (
         <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">

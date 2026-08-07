@@ -4,6 +4,7 @@ import { useTelegram } from '../../providers/TelegramProvider';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useCreatePropertyMutation } from '../../hooks/useProperties';
 import { telegramLoginApi } from '../../services/authService';
+import { ImageUploader } from '../common/ImageUploader';
 import { ETHIOPIAN_REGIONS, ADDIS_ABABA_SUBCITIES } from '@zero-delala/shared';
 import { Building2, Home, Trees, CheckCircle, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 
@@ -23,6 +24,7 @@ export const PostPropertyScreen: React.FC = () => {
   const [bathrooms, setBathrooms] = useState('2');
   const [region, setRegion] = useState('Addis Ababa');
   const [subcity, setSubcity] = useState('Bole');
+  const [images, setImages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
 
@@ -65,6 +67,7 @@ export const PostPropertyScreen: React.FC = () => {
         areaSqm: Number(areaSqm),
         bedrooms: category === 'RESIDENTIAL' ? Number(bedrooms) : 0,
         bathrooms: category === 'RESIDENTIAL' ? Number(bathrooms) : 0,
+        images,
         location: {
           region,
           subcity: region === 'Addis Ababa' ? subcity : undefined
@@ -78,6 +81,7 @@ export const PostPropertyScreen: React.FC = () => {
           setDescription('');
           setPrice('');
           setAreaSqm('');
+          setImages([]);
           setTimeout(() => setSuccessMessage(false), 4000);
         },
         onError: () => {
@@ -145,6 +149,9 @@ export const PostPropertyScreen: React.FC = () => {
         </div>
       )}
 
+      {/* Image Uploader */}
+      <ImageUploader images={images} onChange={setImages} maxImages={5} />
+
       {/* Category Selection */}
       <div className="space-y-1">
         <label className="text-[11px] font-semibold text-slate-300">Category / ዓይነት</label>
@@ -199,9 +206,7 @@ export const PostPropertyScreen: React.FC = () => {
 
       {/* Listing Type Toggle */}
       <div className="space-y-1">
-        <label className="text-[11px] font-semibold text-slate-300">
-          Listing Type / የግብይት ዓይነት
-        </label>
+        <label className="text-[11px] font-semibold text-slate-300">Listing Type / የግብይት ዓይነት</label>
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"

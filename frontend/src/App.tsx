@@ -5,10 +5,11 @@ import { AppLayout } from './components/layout/AppLayout';
 import { HomeScreen } from './components/home/HomeScreen';
 import { SearchScreen } from './components/search/SearchScreen';
 import { PostPropertyScreen } from './components/post/PostPropertyScreen';
+import { SavedScreen } from './components/saved/SavedScreen';
 import { useAppStore } from './store/useAppStore';
 import { useAuthStore } from './store/useAuthStore';
 import { telegramLoginApi } from './services/authService';
-import { Bookmark, User, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
+import { User, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,16 +50,7 @@ function MainView() {
       {activeTab === 'home' && <HomeScreen />}
       {activeTab === 'search' && <SearchScreen />}
       {activeTab === 'post' && <PostPropertyScreen />}
-
-      {activeTab === 'saved' && (
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">
-          <div className="w-12 h-12 mx-auto rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-            <Bookmark className="w-6 h-6" />
-          </div>
-          <h2 className="text-lg font-bold text-white">Saved Properties / የተቀመጡ</h2>
-          <p className="text-xs text-slate-400">View bookmarked real estate listings.</p>
-        </div>
-      )}
+      {activeTab === 'saved' && <SavedScreen />}
 
       {activeTab === 'profile' && (
         <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">

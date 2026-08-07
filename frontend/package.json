@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/leaflet": "^1.9.22",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
@@ -27,9 +28,11 @@
     "@tanstack/react-query": "^5.101.4",
     "@twa-dev/sdk": "^8.0.2",
     "axios": "^1.19.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^1.28.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-leaflet": "^5.0.0",
     "zustand": "^5.0.14"
   }
 }

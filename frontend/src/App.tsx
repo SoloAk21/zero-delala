@@ -3,11 +3,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TelegramProvider, useTelegram } from './providers/TelegramProvider';
 import { AppLayout } from './components/layout/AppLayout';
 import { HomeScreen } from './components/home/HomeScreen';
+import { SearchScreen } from './components/search/SearchScreen';
 import { PostPropertyScreen } from './components/post/PostPropertyScreen';
 import { useAppStore } from './store/useAppStore';
 import { useAuthStore } from './store/useAuthStore';
 import { telegramLoginApi } from './services/authService';
-import { Search, Bookmark, User, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
+import { Bookmark, User, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,19 +47,8 @@ function MainView() {
   return (
     <div>
       {activeTab === 'home' && <HomeScreen />}
+      {activeTab === 'search' && <SearchScreen />}
       {activeTab === 'post' && <PostPropertyScreen />}
-
-      {activeTab === 'search' && (
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">
-          <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
-            <Search className="w-6 h-6" />
-          </div>
-          <h2 className="text-lg font-bold text-white">Search & Filter / ፈልግ</h2>
-          <p className="text-xs text-slate-400">
-            Search properties by Regions, Addis Ababa Sub-Cities, and Prices.
-          </p>
-        </div>
-      )}
 
       {activeTab === 'saved' && (
         <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-3 text-center">

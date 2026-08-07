@@ -4,6 +4,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 enum UserRole {
@@ -35,19 +36,42 @@ enum PropertyStatus {
   DEACTIVATED
 }
 
+enum ReferralStatus {
+  PENDING
+  COMPLETED
+  REJECTED
+}
+
+enum RewardType {
+  FREE_LISTING
+  PROMOTION_COUPON
+  REFERRAL_BONUS
+}
+
 model User {
-  id              String      @id @default(uuid())
-  telegramId      BigInt      @unique
-  username        String?
-  firstName       String
-  lastName        String?
-  phoneNumber     String?     @unique
-  isVerifiedAgent Boolean     @default(false)
-  role            UserRole    @default(BUYER)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  properties      Property[]
-  favorites       Favorite[]
+  id                  String       @id @default(uuid())
+  telegramId          BigInt       @unique
+  username            String?
+  firstName           String
+  lastName            String?
+  phoneNumber         String?      @unique
+  isVerifiedAgent     Boolean      @default(false)
+  role                UserRole     @default(BUYER)
+  referralCode        String       @unique @default(uuid())
+  referredById        String?
+  rewardListingsCount Int          @default(0)
+  referralCount       Int          @default(0)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  referredBy          User?        @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrees           User[]       @relation("UserReferrals")
+  referralsSent       Referral[]   @relation("ReferrerRel")
+  referralsReceived   Referral[]   @relation("RefereeRel")
+  properties          Property[]
+  favorites           Favorite[]
+  coupons             UserCoupon[]
+  rewardLogs          RewardLog[]
 
   @@map("users")
 }
@@ -109,4 +133,85 @@ model Favorite {
 
   @@unique([userId, propertyId])
   @@map("favorites")
+}
+
+model ChannelGate {
+  id                 String   @id @default(uuid())
+  channelId          String   @unique
+  channelUsername    String   @unique
+  channelTitle       String
+  isRequired         Boolean  @default(true)
+  rewardFreeListings Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("channel_gates")
+}
+
+model Referral {
+  id           String         @id @default(uuid())
+  referrerId   String
+  refereeId    String         @unique
+  referralCode String
+  status       ReferralStatus @default(PENDING)
+  ipAddress    String?
+  deviceHash   String?
+  completedAt  DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  referrer     User           @relation("ReferrerRel", fields: [referrerId], references: [id], onDelete: Cascade)
+  referee      User           @relation("RefereeRel", fields: [refereeId], references: [id], onDelete: Cascade)
+
+  @@map("referrals")
+}
+
+model Coupon {
+  id                 String       @id @default(uuid())
+  code               String       @unique
+  description        String
+  discountPercent    Int
+  maxDiscountAmount  Float?
+  isWelcomeCoupon    Boolean      @default(false)
+  isReferralCoupon   Boolean      @default(false)
+  maxRedemptions     Int          @default(1000)
+  currentRedemptions Int          @default(0)
+  expiresAt          DateTime?
+  isActive           Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  userCoupons        UserCoupon[]
+
+  @@map("coupons")
+}
+
+model UserCoupon {
+  id        String    @id @default(uuid())
+  userId    String
+  couponId  String
+  isUsed    Boolean   @default(false)
+  usedAt    DateTime?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coupon    Coupon    @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  @@map("user_coupons")
+}
+
+model RewardLog {
+  id          String     @id @default(uuid())
+  userId      String
+  action      String
+  rewardType  RewardType
+  amount      Float      @default(1)
+  description String
+  ipAddress   String?
+  createdAt   DateTime   @default(now())
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reward_logs")
 }

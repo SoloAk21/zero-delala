@@ -17,6 +17,7 @@ import botRoutes from './routes/bot.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import propertyRoutes from './routes/property.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
+import favoriteRoutes from './routes/favorite.routes.js';
 
 dotenv.config();
 
@@ -25,7 +26,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   helmet({
-    crossOriginResourcePolicy: false // Allow static /uploads images cross-origin
+    crossOriginResourcePolicy: false
   })
 );
 app.use(cors());
@@ -72,6 +73,7 @@ app.use('/api/v1/bot', botRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/properties', propertyRoutes);
 app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/favorites', favoriteRoutes);
 
 // Isolated Telegram InitData Signature Test Endpoint
 app.post(

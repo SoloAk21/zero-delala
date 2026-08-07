@@ -47,6 +47,7 @@ model User {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   properties      Property[]
+  favorites       Favorite[]
 
   @@map("users")
 }
@@ -89,9 +90,23 @@ model Property {
   ownerId       String
   owner         User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   location      Location?
+  favorites     Favorite[]
   
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
   @@map("properties")
+}
+
+model Favorite {
+  id          String   @id @default(uuid())
+  userId      String
+  propertyId  String
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+  @@map("favorites")
 }

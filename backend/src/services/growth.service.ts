@@ -15,14 +15,13 @@ export interface TelegramChatMemberStatus {
 
 export const verifyTelegramChannelMembership = async (
   telegramId: string | number,
-  channelUsername: string = '@zero_delala_channel'
+  channelUsername: string = '@ZeroDelala'
 ): Promise<TelegramChatMemberStatus> => {
   const formattedUsername = channelUsername.startsWith('@')
     ? channelUsername
     : `@${channelUsername}`;
   const joinUrl = `https://t.me/${formattedUsername.replace('@', '')}`;
 
-  // Local dry-run verification mode when live BOT_TOKEN is placeholder
   if (!BOT_TOKEN || BOT_TOKEN === 'your_telegram_bot_token_here') {
     logger.info(`[Growth Service] Dry-run membership check passed for Telegram ID: ${telegramId}`);
     return {

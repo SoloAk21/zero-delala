@@ -7,7 +7,7 @@ import { CheckMembershipInput } from '../schemas/growth.schema.js';
 export const checkChannelMembership = asyncHandler(
   async (req: Request<{}, {}, CheckMembershipInput>, res: Response) => {
     const telegramId = req.body.telegramId || req.user?.telegramId?.toString();
-    const channelUsername = req.body.channelUsername || '@zero_delala_channel';
+    const channelUsername = req.body.channelUsername || '@ZeroDelala';
 
     if (!telegramId) {
       res.status(200).json({
@@ -34,7 +34,7 @@ export const checkChannelMembership = asyncHandler(
 );
 
 export const getChannelGateInfo = asyncHandler(async (_req: Request, res: Response) => {
-  const channelUsername = '@zero_delala_channel';
+  const channelUsername = '@ZeroDelala';
   const response: ApiResponse<{
     channelUsername: string;
     channelTitle: string;

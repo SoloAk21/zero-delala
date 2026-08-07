@@ -1,5 +1,6 @@
 import React from 'react';
 import { BottomNav } from './BottomNav';
+import { ChannelGateModal } from '../growth/ChannelGateModal';
 import { useAppStore } from '../../store/useAppStore';
 import { useTelegram } from '../../providers/TelegramProvider';
 import { Building2, Globe } from 'lucide-react';
@@ -15,6 +16,9 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans pb-20 select-none">
+      {/* Channel Gate Onboarding Modal */}
+      <ChannelGateModal />
+
       {/* Sticky Top Header */}
       <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">

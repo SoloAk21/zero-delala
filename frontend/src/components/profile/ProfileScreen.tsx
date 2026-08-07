@@ -5,6 +5,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { usePropertiesQuery } from '../../hooks/useProperties';
 import { telegramLoginApi } from '../../services/authService';
 import { apiClient } from '../../services/api';
+import { PromotionModal } from './PromotionModal';
+import { Property } from '../../services/propertyService';
 import {
   User,
   ShieldCheck,
@@ -15,7 +17,6 @@ import {
   CheckCircle,
   Eye,
   LogOut,
-  Star,
   Zap
 } from 'lucide-react';
 
@@ -29,6 +30,9 @@ export const ProfileScreen: React.FC = () => {
   const [verifyingPhone, setVerifyingPhone] = useState(false);
   const [phoneSuccess, setPhoneSuccess] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
+  const [selectedPropertyForPromotion, setSelectedPropertyForPromotion] = useState<Property | null>(
+    null
+  );
 
   const { data: propertiesData } = usePropertiesQuery();
   const myProperties = (propertiesData?.properties || []).filter(
@@ -214,27 +218,6 @@ export const ProfileScreen: React.FC = () => {
         </button>
       </form>
 
-      {/* Listing Promotions Workflow Preview */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-amber-400" /> Boost & Featured Placement
-          </h3>
-          <span className="text-[10px] font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">
-            Featured Badge
-          </span>
-        </div>
-        <p className="text-xs text-slate-400">
-          Get 5x more buyer calls by pinning your listing at the top of Ethiopian search results.
-        </p>
-        <button
-          onClick={() => hapticImpact('medium')}
-          className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-        >
-          <Star className="w-3.5 h-3.5 fill-amber-400" /> Promote Listing Workflow
-        </button>
-      </div>
-
       {/* My Posted Listings */}
       <div className="space-y-2">
         <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
@@ -246,21 +229,42 @@ export const ProfileScreen: React.FC = () => {
           {myProperties.map((prop) => (
             <div
               key={prop.id}
-              className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between"
+              className="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2"
             >
-              <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-white line-clamp-1">{prop.title}</h4>
-                <span className="text-emerald-400 text-xs font-extrabold">
-                  {prop.price.toLocaleString()} ETB
-                </span>
+              <div className="space-y-0.5 truncate">
+                <h4 className="text-xs font-bold text-white truncate">{prop.title}</h4>
+                <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                  <span className="text-emerald-400 font-extrabold">
+                    {prop.price.toLocaleString()} ETB
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-3 h-3 text-emerald-400" /> {prop.viewsCount}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-1 text-[10px] text-slate-400 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
-                <Eye className="w-3 h-3 text-emerald-400" /> {prop.viewsCount}
-              </div>
+
+              <button
+                onClick={() => {
+                  hapticImpact('medium');
+                  setSelectedPropertyForPromotion(prop);
+                }}
+                className="px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-[10px] font-bold flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
+              >
+                <Zap className="w-3 h-3 fill-amber-400" /> Promote
+              </button>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Promotion Modal */}
+      {selectedPropertyForPromotion && (
+        <PromotionModal
+          property={selectedPropertyForPromotion}
+          onClose={() => setSelectedPropertyForPromotion(null)}
+        />
+      )}
     </div>
   );
 };

@@ -1,10 +1,8 @@
 import axios from 'axios';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { ApiResponse } from '@zero-delala/shared';
 
-dotenv.config();
-
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = process.env.BACKEND_URL || 'https://zero-delala-backend1.onrender.com';
 
 const apiClient = axios.create({
   baseURL: `${BACKEND_URL}/api/v1`,

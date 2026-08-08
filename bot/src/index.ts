@@ -1,12 +1,10 @@
 import { Telegraf, Markup } from 'telegraf';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { ETHIOPIAN_REGIONS, ADDIS_ABABA_SUBCITIES } from '@zero-delala/shared';
 import { checkBackendHealth, syncUserWithBackend } from './services/api.js';
 
-dotenv.config();
-
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const WEBAPP_URL = process.env.WEBAPP_URL || 'http://localhost:3000';
+const WEBAPP_URL = process.env.WEBAPP_URL || 'https://zero-delala.vercel.app';
 
 if (!BOT_TOKEN || BOT_TOKEN === 'your_telegram_bot_token_here') {
   (async () => {
@@ -19,7 +17,7 @@ if (!BOT_TOKEN || BOT_TOKEN === 'your_telegram_bot_token_here') {
 
     const isBackendReachable = await checkBackendHealth();
     console.log(
-      `[Zero Delala Bot] Backend Health Probe: ${isBackendReachable ? 'CONNECTED (http://localhost:5000)' : 'OFFLINE'}`
+      `[Zero Delala Bot] Backend Health Probe: ${isBackendReachable ? 'CONNECTED' : 'OFFLINE'}`
     );
 
     if (isBackendReachable) {
@@ -46,7 +44,6 @@ if (!BOT_TOKEN || BOT_TOKEN === 'your_telegram_bot_token_here') {
   bot.start(async (ctx) => {
     const firstName = ctx.from?.first_name || 'በእኛ መተግበሪያ';
 
-    // Non-blocking user sync to PostgreSQL
     if (ctx.from) {
       await syncUserWithBackend({
         telegramId: ctx.from.id,

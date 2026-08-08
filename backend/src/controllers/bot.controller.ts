@@ -8,6 +8,11 @@ export const syncTelegramUser = asyncHandler(
   async (req: Request<{}, {}, SyncTelegramUserInput>, res: Response) => {
     const { telegramId, firstName, lastName, username, phoneNumber } = req.body;
 
+    // Check if new user
+    const existingUser = await prisma.user.findUnique({
+      where: { telegramId: BigInt(telegramId) }
+    });
+
     const user = await prisma.user.upsert({
       where: {
         telegramId: BigInt(telegramId)
@@ -24,6 +29,8 @@ export const syncTelegramUser = asyncHandler(
         lastName: lastName || null,
         username: username || null,
         phoneNumber: phoneNumber || null,
+        role: 'OWNER',
+        rewardListingsCount: 1, // Award 1 First Free Listing Credit
         referralCode: `ref_${telegramId}_${Math.floor(Math.random() * 1000)}`
       }
     });

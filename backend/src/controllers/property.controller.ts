@@ -3,11 +3,13 @@ import { ApiResponse } from '@zero-delala/shared';
 import { prisma } from '../db/prisma.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../utils/AppError.js';
+import { initializeChapaPayment } from '../services/chapa.service.js';
 import { CreatePropertyInput, GetPropertiesQueryInput } from '../schemas/property.schema.js';
 
 export const createProperty = asyncHandler(
   async (req: Request<{}, {}, CreatePropertyInput>, res: Response) => {
-    const ownerId = req.user!.id;
+    const user = req.user!;
+    const ownerId = user.id;
     const {
       title,
       titleAmharic,
@@ -24,6 +26,11 @@ export const createProperty = asyncHandler(
       location
     } = req.body;
 
+    const userRewardCredits = (user as any).rewardListingsCount || 0;
+    const hasFreeCredit = userRewardCredits > 0;
+    const propertyStatus = hasFreeCredit ? 'ACTIVE' : 'PENDING_VERIFICATION';
+
+    // 1. Create property listing in database
     const property = await prisma.property.create({
       data: {
         title,
@@ -31,6 +38,7 @@ export const createProperty = asyncHandler(
         description,
         listingType,
         category,
+        status: propertyStatus,
         price,
         isNegotiable,
         areaSqm,
@@ -65,9 +73,51 @@ export const createProperty = asyncHandler(
       }
     });
 
-    const response: ApiResponse<typeof property> = {
+    let checkoutUrl: string | undefined = undefined;
+    let txRef: string | undefined = undefined;
+
+    if (hasFreeCredit) {
+      // Deduct 1 free listing reward credit
+      await prisma.user.update({
+        where: { id: ownerId },
+        data: {
+          rewardListingsCount: { decrement: 1 }
+        } as any
+      });
+    } else {
+      // Initialize Chapa payment session for listing fee (500 ETB)
+      txRef = `zd_tx_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      const cleanUsername = user.username ? user.username.replace(/[^a-zA-Z0-9]/g, '') : 'customer';
+
+      const chapaResponse = await initializeChapaPayment({
+        amount: 500,
+        currency: 'ETB',
+        email: `${cleanUsername}@gmail.com`,
+        firstName: user.firstName,
+        lastName: user.lastName || 'User',
+        phoneNumber: user.phoneNumber || '0911000000',
+        txRef,
+        callbackUrl: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/v1/payments/webhook`,
+        returnUrl: `${process.env.WEBAPP_URL || 'http://localhost:3000'}?payment=success`,
+        customTitle: 'Zero Delala'
+      });
+
+      checkoutUrl = chapaResponse.data?.checkout_url || chapaResponse.checkout_url;
+    }
+
+    const response: ApiResponse<{
+      property: typeof property;
+      requiresPayment: boolean;
+      checkoutUrl?: string;
+      txRef?: string;
+    }> = {
       success: true,
-      data: property
+      data: {
+        property,
+        requiresPayment: !hasFreeCredit,
+        checkoutUrl,
+        txRef
+      }
     };
 
     res.status(201).json(response);
@@ -92,6 +142,7 @@ export const getProperties = asyncHandler(async (req: Request, res: Response) =>
 
   const skip = (page - 1) * limit;
 
+  // Only ACTIVE properties are shown on the public marketplace
   const where: any = {
     status: 'ACTIVE'
   };
@@ -179,7 +230,6 @@ export const getPropertyById = asyncHandler(async (req: Request, res: Response) 
     throw new AppError('Property listing not found or inactive', 404, 'NOT_FOUND');
   }
 
-  // Increment view count atomically
   const updatedProperty = await prisma.property.update({
     where: { id },
     data: {

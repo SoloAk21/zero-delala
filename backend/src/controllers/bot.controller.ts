@@ -23,11 +23,11 @@ export const syncTelegramUser = asyncHandler(
         firstName,
         lastName: lastName || null,
         username: username || null,
-        phoneNumber: phoneNumber || null
+        phoneNumber: phoneNumber || null,
+        referralCode: `ref_${telegramId}_${Math.floor(Math.random() * 1000)}`
       }
     });
 
-    // Convert BigInt telegramId to String for JSON response
     const serializedUser = {
       ...user,
       telegramId: user.telegramId.toString()

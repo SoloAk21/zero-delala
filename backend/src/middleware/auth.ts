@@ -3,7 +3,7 @@ import { verifyToken } from '../utils/jwt.js';
 import { prisma } from '../db/prisma.js';
 import { AppError } from '../utils/AppError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { User } from '../generated/client/index.js';
+import { User } from '@prisma/client';
 
 export const requireAuth = asyncHandler(
   async (req: Request, _res: Response, next: NextFunction) => {

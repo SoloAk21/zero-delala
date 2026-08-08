@@ -49,7 +49,8 @@ export const telegramLogin = asyncHandler(
         firstName: tgUser.first_name,
         lastName: tgUser.last_name || null,
         username: tgUser.username || null,
-        role: 'BUYER'
+        role: 'BUYER',
+        referralCode: `ref_${tgUser.id}_${Math.floor(Math.random() * 1000)}`
       }
     });
 

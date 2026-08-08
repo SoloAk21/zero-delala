@@ -6,11 +6,20 @@ import { useCreatePropertyMutation } from '../../hooks/useProperties';
 import { telegramLoginApi } from '../../services/authService';
 import { ImageUploader } from '../common/ImageUploader';
 import { ETHIOPIAN_REGIONS, ADDIS_ABABA_SUBCITIES } from '@zero-delala/shared';
-import { Building2, Home, Trees, CheckCircle, Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import {
+  Building2,
+  Home,
+  Trees,
+  CheckCircle,
+  Loader2,
+  Sparkles,
+  AlertCircle,
+  Zap
+} from 'lucide-react';
 
 export const PostPropertyScreen: React.FC = () => {
   const { t, isAmharic } = useTranslation();
-  const { hapticImpact, hapticNotification, initData } = useTelegram();
+  const { hapticImpact, hapticNotification, webApp, initData } = useTelegram();
   const { isAuthenticated, setAuth } = useAuthStore();
   const createMutation = useCreatePropertyMutation();
 
@@ -26,6 +35,7 @@ export const PostPropertyScreen: React.FC = () => {
   const [subcity, setSubcity] = useState('Bole');
   const [images, setImages] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState(false);
+  const [pendingPaymentMessage, setPendingPaymentMessage] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
 
   const handleAuthenticate = async () => {
@@ -74,15 +84,29 @@ export const PostPropertyScreen: React.FC = () => {
         }
       },
       {
-        onSuccess: () => {
+        onSuccess: (data: any) => {
           hapticNotification('success');
-          setSuccessMessage(true);
+
+          if (data?.requiresPayment && data?.checkoutUrl) {
+            setPendingPaymentMessage(true);
+            const checkoutUrl = data.checkoutUrl;
+
+            // Open Chapa checkout in Telegram WebApp
+            if (webApp && typeof webApp.openLink === 'function') {
+              webApp.openLink(checkoutUrl);
+            } else {
+              window.open(checkoutUrl, '_blank');
+            }
+          } else {
+            setSuccessMessage(true);
+            setTimeout(() => setSuccessMessage(false), 5000);
+          }
+
           setTitle('');
           setDescription('');
           setPrice('');
           setAreaSqm('');
           setImages([]);
-          setTimeout(() => setSuccessMessage(false), 4000);
         },
         onError: () => {
           hapticNotification('error');
@@ -138,7 +162,14 @@ export const PostPropertyScreen: React.FC = () => {
       {successMessage && (
         <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs flex items-center gap-2">
           <CheckCircle className="w-4 h-4 shrink-0" />
-          <span>Property posted successfully to Zero Delala database!</span>
+          <span>Property published immediately using your Free Listing Credit!</span>
+        </div>
+      )}
+
+      {pendingPaymentMessage && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400 text-xs flex items-center gap-2">
+          <Zap className="w-4 h-4 shrink-0 fill-amber-400" />
+          <span>Listing created! Complete Chapa payment to activate on the marketplace.</span>
         </div>
       )}
 
@@ -206,7 +237,9 @@ export const PostPropertyScreen: React.FC = () => {
 
       {/* Listing Type Toggle */}
       <div className="space-y-1">
-        <label className="text-[11px] font-semibold text-slate-300">Listing Type / የግብይት ዓይነት</label>
+        <label className="text-[11px] font-semibold text-slate-300">
+          Listing Type / የግብይት ዓይነት
+        </label>
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"

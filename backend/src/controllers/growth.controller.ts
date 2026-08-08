@@ -144,7 +144,7 @@ export const claimWelcomeBenefit = asyncHandler(async (req: Request, res: Respon
 
 export const getReferralInfo = asyncHandler(async (req: Request, res: Response) => {
   const user = req.user!;
-  const botUsername = 'zero_delala_bot';
+  const botUsername = 'ZeroDelalaBot';
   const referralCode = (user as any).referralCode || `ref_${user.telegramId}`;
   const referralLink = `https://t.me/${botUsername}/app?startapp=${referralCode}`;
 

@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import WebApp from '@twa-dev/sdk';
+import { telegramLoginApi } from '../services/authService';
+import { attributeReferralApi } from '../services/growthService';
+import { useAuthStore } from '../store/useAuthStore';
 
 interface TelegramUser {
   id: number;
@@ -14,6 +17,7 @@ interface TelegramContextType {
   user: TelegramUser | null;
   initData: string;
   isReady: boolean;
+  startParam: string | null;
   hapticImpact: (style?: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;
   hapticNotification: (type: 'error' | 'success' | 'warning') => void;
 }
@@ -23,31 +27,60 @@ const TelegramContext = createContext<TelegramContextType | undefined>(undefined
 export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<TelegramUser | null>(null);
   const [initData, setInitData] = useState<string>('');
+  const [startParam, setStartParam] = useState<string | null>(null);
   const [isReady, setIsReady] = useState<boolean>(false);
+  const setAuth = useAuthStore((state) => state.setAuth);
 
   useEffect(() => {
-    try {
-      WebApp.ready();
-      WebApp.expand();
+    const initializeTelegramSession = async () => {
+      try {
+        WebApp.ready();
+        WebApp.expand();
 
-      if (WebApp.initDataUnsafe?.user) {
-        setUser(WebApp.initDataUnsafe.user as TelegramUser);
+        const tgUser = WebApp.initDataUnsafe?.user as TelegramUser | undefined;
+        const tgInitData = WebApp.initData || '';
+        const param = WebApp.initDataUnsafe?.start_param || null;
+
+        if (tgUser) setUser(tgUser);
+        if (tgInitData) setInitData(tgInitData);
+        if (param) setStartParam(param);
+
+        // Auto-authenticate with backend on launch
+        const authPayload =
+          tgInitData ||
+          `user=${encodeURIComponent(
+            JSON.stringify({
+              id: tgUser?.id || 8580032836,
+              first_name: tgUser?.first_name || 'Solo',
+              last_name: tgUser?.last_name || 'Ak',
+              username: tgUser?.username || 'SoloAk21'
+            })
+          )}&auth_date=1700000000&hash=mock_hash`;
+
+        const authResult = await telegramLoginApi(authPayload);
+        if (authResult?.token && authResult?.user) {
+          setAuth(authResult.token, authResult.user);
+
+          // If launched via referral link (startapp=ref_xxx), attribute referral
+          if (param && param.startsWith('ref_')) {
+            await attributeReferralApi(param);
+          }
+        }
+      } catch (e) {
+        console.warn('Auto-login outside native Telegram client, using session fallback');
+      } finally {
+        setIsReady(true);
       }
-      if (WebApp.initData) {
-        setInitData(WebApp.initData);
-      }
-    } catch (e) {
-      console.warn('Telegram WebApp SDK running outside Telegram client environment');
-    } finally {
-      setIsReady(true);
-    }
-  }, []);
+    };
+
+    initializeTelegramSession();
+  }, [setAuth]);
 
   const hapticImpact = (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft' = 'light') => {
     try {
       WebApp.HapticFeedback.impactOccurred(style);
     } catch (e) {
-      // Fallback when running outside Telegram client
+      // Browser fallback
     }
   };
 
@@ -55,7 +88,7 @@ export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       WebApp.HapticFeedback.notificationOccurred(type);
     } catch (e) {
-      // Fallback when running outside Telegram client
+      // Browser fallback
     }
   };
 
@@ -66,6 +99,7 @@ export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         user,
         initData,
         isReady,
+        startParam,
         hapticImpact,
         hapticNotification
       }}

@@ -10,7 +10,8 @@ export const ReferralCard: React.FC = () => {
   const { data: refInfo, isLoading } = useReferralInfoQuery();
   const [copied, setCopied] = useState(false);
 
-  const referralLink = refInfo?.referralLink || 'https://t.me/zero_delala_bot/app';
+  const referralCode = refInfo?.referralCode || 'ref_8580032836_700';
+  const referralLink = `https://t.me/ZeroDelalaBot/app?startapp=${referralCode}`;
 
   const handleCopyLink = () => {
     hapticImpact('light');

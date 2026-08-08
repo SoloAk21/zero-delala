@@ -3,7 +3,7 @@ import { ApiResponse } from '@zero-delala/shared';
 import { prisma } from '../db/prisma.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { verifyTelegramChannelMembership } from '../services/growth.service.js';
-import { CheckMembershipInput } from '../schemas/growth.schema.js';
+import { CheckMembershipInput, AttributeReferralInput } from '../schemas/growth.schema.js';
 
 const db = prisma as any;
 
@@ -59,7 +59,6 @@ export const getChannelGateInfo = asyncHandler(async (_req: Request, res: Respon
 export const claimWelcomeBenefit = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.id;
 
-  // Check if welcome benefit was already claimed
   const existingLog = await db.rewardLog.findFirst({
     where: {
       userId,
@@ -79,7 +78,6 @@ export const claimWelcomeBenefit = asyncHandler(async (req: Request, res: Respon
     return;
   }
 
-  // Ensure Welcome Coupon WELCOME30 exists
   const welcomeCoupon = await db.coupon.upsert({
     where: { code: 'WELCOME30' },
     update: {},
@@ -92,7 +90,6 @@ export const claimWelcomeBenefit = asyncHandler(async (req: Request, res: Respon
     }
   });
 
-  // Execute Welcome Benefit atomic updates
   const [updatedUser] = await db.$transaction([
     prisma.user.update({
       where: { id: userId },
@@ -104,7 +101,7 @@ export const claimWelcomeBenefit = asyncHandler(async (req: Request, res: Respon
       data: {
         userId,
         couponId: welcomeCoupon.id,
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days expiry
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       }
     }),
     db.rewardLog.create({
@@ -139,3 +136,134 @@ export const claimWelcomeBenefit = asyncHandler(async (req: Request, res: Respon
 
   res.status(200).json(response);
 });
+
+export const getReferralInfo = asyncHandler(async (req: Request, res: Response) => {
+  const user = req.user!;
+  const botUsername = 'zero_delala_bot';
+  const referralCode = (user as any).referralCode || `ref_${user.telegramId}`;
+  const referralLink = `https://t.me/${botUsername}/app?startapp=${referralCode}`;
+
+  const userCoupons = await db.userCoupon.findMany({
+    where: { userId: user.id },
+    include: { coupon: true }
+  });
+
+  const response: ApiResponse<{
+    referralCode: string;
+    referralLink: string;
+    referralCount: number;
+    rewardListingsCount: number;
+    coupons: any[];
+  }> = {
+    success: true,
+    data: {
+      referralCode,
+      referralLink,
+      referralCount: (user as any).referralCount || 0,
+      rewardListingsCount: (user as any).rewardListingsCount || 0,
+      coupons: userCoupons
+    }
+  };
+
+  res.status(200).json(response);
+});
+
+export const attributeReferral = asyncHandler(
+  async (req: Request<{}, {}, AttributeReferralInput>, res: Response) => {
+    const refereeId = req.user!.id;
+    const { referralCode } = req.body;
+
+    if ((req.user as any).referralCode === referralCode) {
+      res.status(200).json({
+        success: true,
+        message: 'Self-referral ignored',
+        data: { attributed: false }
+      });
+      return;
+    }
+
+    const referrer = await prisma.user.findFirst({
+      where: { referralCode }
+    });
+
+    if (!referrer) {
+      res.status(200).json({
+        success: true,
+        message: 'Referral code not found',
+        data: { attributed: false }
+      });
+      return;
+    }
+
+    const existingReferral = await db.referral.findUnique({
+      where: { refereeId }
+    });
+
+    if (existingReferral) {
+      res.status(200).json({
+        success: true,
+        message: 'User already referred',
+        data: { attributed: false }
+      });
+      return;
+    }
+
+    const promo70 = await db.coupon.upsert({
+      where: { code: 'PROMO70' },
+      update: {},
+      create: {
+        code: 'PROMO70',
+        description: '70% OFF Listing Promotion Referral Reward',
+        discountPercent: 70,
+        isReferralCoupon: true,
+        maxRedemptions: 100000
+      }
+    });
+
+    await db.$transaction([
+      db.referral.create({
+        data: {
+          referrerId: referrer.id,
+          refereeId,
+          referralCode,
+          status: 'COMPLETED',
+          completedAt: new Date()
+        }
+      }),
+      prisma.user.update({
+        where: { id: refereeId },
+        data: { referredById: referrer.id } as any
+      }),
+      prisma.user.update({
+        where: { id: referrer.id },
+        data: {
+          referralCount: { increment: 1 },
+          rewardListingsCount: { increment: 1 }
+        } as any
+      }),
+      db.userCoupon.create({
+        data: {
+          userId: referrer.id,
+          couponId: promo70.id,
+          expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)
+        }
+      }),
+      db.rewardLog.create({
+        data: {
+          userId: referrer.id,
+          action: 'REFERRAL_REWARD_AWARDED',
+          rewardType: 'REFERRAL_BONUS',
+          amount: 1,
+          description: `Earned 1 Free Listing + 70% Discount Coupon for inviting ${req.user!.firstName}`
+        }
+      })
+    ]);
+
+    const response: ApiResponse<{ attributed: boolean }> = {
+      success: true,
+      data: { attributed: true }
+    };
+
+    res.status(200).json(response);
+  }
+);

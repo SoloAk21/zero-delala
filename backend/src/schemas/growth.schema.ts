@@ -7,4 +7,11 @@ export const checkMembershipSchema = z.object({
   })
 });
 
+export const attributeReferralSchema = z.object({
+  body: z.object({
+    referralCode: z.string().min(1, 'Referral code is required')
+  })
+});
+
 export type CheckMembershipInput = z.infer<typeof checkMembershipSchema>['body'];
+export type AttributeReferralInput = z.infer<typeof attributeReferralSchema>['body'];

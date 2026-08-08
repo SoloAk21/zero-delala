@@ -19,6 +19,7 @@ import {
   LogOut,
   Zap
 } from 'lucide-react';
+import { ReferralCard } from './ReferralCard';
 
 export const ProfileScreen: React.FC = () => {
   const { isAmharic } = useTranslation();
@@ -218,6 +219,7 @@ export const ProfileScreen: React.FC = () => {
         </button>
       </form>
 
+      <ReferralCard />
       {/* My Posted Listings */}
       <div className="space-y-2">
         <h3 className="text-xs font-bold text-white flex items-center gap-1.5">

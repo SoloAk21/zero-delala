@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useTelegram } from '../../providers/TelegramProvider';
-import { useCheckMembershipQuery, useVerifyMembershipMutation } from '../../hooks/useGrowth';
+import { useAuthStore } from '../../store/useAuthStore';
+import {
+  useCheckMembershipQuery,
+  useVerifyMembershipMutation,
+  useClaimWelcomeBenefitMutation
+} from '../../hooks/useGrowth';
 import { MessageSquare, ShieldCheck, Loader2, ExternalLink, CheckCircle } from 'lucide-react';
 
 export const ChannelGateModal: React.FC = () => {
   const { isAmharic } = useTranslation();
   const { hapticImpact, hapticNotification, webApp, user } = useTelegram();
+  const { isAuthenticated, user: authUser } = useAuthStore();
   const { data: membership, isLoading } = useCheckMembershipQuery();
   const verifyMutation = useVerifyMembershipMutation();
+  const welcomeMutation = useClaimWelcomeBenefitMutation();
   const [verifying, setVerifying] = useState(false);
 
   if (isLoading || membership?.isMember) {
@@ -31,11 +38,16 @@ export const ChannelGateModal: React.FC = () => {
     hapticImpact('medium');
     setVerifying(true);
 
-    verifyMutation.mutate(user?.id, {
-      onSuccess: (data) => {
+    const activeTelegramId = user?.id || authUser?.telegramId || '8580032836';
+
+    verifyMutation.mutate(activeTelegramId, {
+      onSuccess: (data: any) => {
         setVerifying(false);
         if (data?.isMember) {
           hapticNotification('success');
+          if (isAuthenticated) {
+            welcomeMutation.mutate();
+          }
         } else {
           hapticNotification('warning');
         }

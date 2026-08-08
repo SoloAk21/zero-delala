@@ -10,6 +10,7 @@ import { AppError } from './utils/AppError.js';
 import { asyncHandler } from './utils/asyncHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { validateRequest } from './middleware/validateRequest.js';
+import { apiLimiter, authLimiter } from './middleware/rateLimiter.js';
 import { verifyTelegramInitData } from './utils/telegramAuth.js';
 import { generateToken, verifyToken } from './utils/jwt.js';
 import { prisma } from './db/prisma.js';
@@ -34,6 +35,11 @@ app.use(
 );
 app.use(cors());
 app.use(express.json());
+
+// Apply global rate limiting
+app.use('/api/', apiLimiter);
+app.use('/api/v1/auth/', authLimiter);
+app.use('/api/v1/growth/', authLimiter);
 
 // Serve uploads directory statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

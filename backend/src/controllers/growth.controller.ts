@@ -353,3 +353,33 @@ export const applyCoupon = asyncHandler(
     res.status(200).json(response);
   }
 );
+
+export const getGrowthAnalytics = asyncHandler(async (_req: Request, res: Response) => {
+  const [totalUsers, totalProperties, totalReferrals, totalRewardLogs, totalCoupons] =
+    await Promise.all([
+      prisma.user.count(),
+      prisma.property.count(),
+      db.referral.count({ where: { status: 'COMPLETED' } }),
+      db.rewardLog.count(),
+      db.userCoupon.count()
+    ]);
+
+  const response: ApiResponse<{
+    totalUsers: number;
+    totalProperties: number;
+    totalReferrals: number;
+    totalRewardLogs: number;
+    totalCouponsIssued: number;
+  }> = {
+    success: true,
+    data: {
+      totalUsers,
+      totalProperties,
+      totalReferrals,
+      totalRewardLogs,
+      totalCouponsIssued: totalCoupons
+    }
+  };
+
+  res.status(200).json(response);
+});

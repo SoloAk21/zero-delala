@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useTelegram } from '../../providers/TelegramProvider';
 import { useReferralInfoQuery } from '../../hooks/useGrowth';
-import { Users, Copy, Share2, Gift, Check, Ticket, Sparkles } from 'lucide-react';
+import { Users, Copy, Share2, Check, Ticket } from 'lucide-react';
 
 export const ReferralCard: React.FC = () => {
   const { isAmharic } = useTranslation();

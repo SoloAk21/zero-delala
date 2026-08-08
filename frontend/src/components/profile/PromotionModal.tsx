@@ -60,7 +60,7 @@ export const PromotionModal: React.FC<PromotionModalProps> = ({ property, onClos
           </div>
           <div>
             <h3 className="text-sm font-bold text-white">Promote Listing</h3>
-            <p className="text-[10px] text-slate-400 truncate max-w-[200px]">{property.title}</p>
+            <p className="text-[10px] text-slate-400 truncate max-w-50">{property.title}</p>
           </div>
         </div>
 

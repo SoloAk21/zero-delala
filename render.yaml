@@ -1,0 +1,40 @@
+services:
+  # 1. Zero Delala Backend REST API
+  - type: web
+    name: zero-delala-backend
+    env: node
+    region: oregon
+    buildCommand: npm install && npm run build --workspace=shared && npm run build --workspace=backend
+    startCommand: npm run start --workspace=backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: CHAPA_SECRET_KEY
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
+
+  # 2. Zero Delala Telegraf Telegram Bot
+  - type: worker
+    name: zero-delala-bot
+    env: node
+    region: oregon
+    buildCommand: npm install && npm run build --workspace=shared && npm run build --workspace=bot
+    startCommand: npm run start --workspace=bot
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: WEBAPP_URL
+        sync: false

@@ -1,13 +1,19 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validateRequest.js';
-import { checkMembershipSchema, attributeReferralSchema } from '../schemas/growth.schema.js';
+import {
+  checkMembershipSchema,
+  attributeReferralSchema,
+  applyCouponSchema
+} from '../schemas/growth.schema.js';
 import {
   checkChannelMembership,
   getChannelGateInfo,
   claimWelcomeBenefit,
   getReferralInfo,
-  attributeReferral
+  attributeReferral,
+  getUserCoupons,
+  applyCoupon
 } from '../controllers/growth.controller.js';
 
 const router = Router();

@@ -20,6 +20,7 @@ import uploadRoutes from './routes/upload.routes.js';
 import favoriteRoutes from './routes/favorite.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import growthRoutes from './routes/growth.routes.js';
+import couponRoutes from './routes/coupon.routes.js';
 
 dotenv.config();
 
@@ -78,6 +79,7 @@ app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/favorites', favoriteRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/growth', growthRoutes);
+app.use('/api/v1/coupons', couponRoutes);
 
 // Isolated Telegram InitData Signature Test Endpoint
 app.post(

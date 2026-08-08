@@ -3,7 +3,9 @@ import {
   fetchChannelGateInfo,
   checkChannelMembershipApi,
   fetchReferralInfoApi,
-  attributeReferralApi
+  attributeReferralApi,
+  fetchUserCouponsApi,
+  applyCouponApi
 } from '../services/growthService';
 import { useTelegram } from '../providers/TelegramProvider';
 import { useAuthStore } from '../store/useAuthStore';
@@ -53,6 +55,7 @@ export const useClaimWelcomeBenefitMutation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referralInfo'] });
+      queryClient.invalidateQueries({ queryKey: ['userCoupons'] });
     }
   });
 };
@@ -74,6 +77,23 @@ export const useAttributeReferralMutation = () => {
     mutationFn: (referralCode: string) => attributeReferralApi(referralCode),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referralInfo'] });
+      queryClient.invalidateQueries({ queryKey: ['userCoupons'] });
     }
+  });
+};
+
+export const useUserCouponsQuery = () => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  return useQuery({
+    queryKey: ['userCoupons'],
+    queryFn: fetchUserCouponsApi,
+    enabled: isAuthenticated
+  });
+};
+
+export const useApplyCouponMutation = () => {
+  return useMutation({
+    mutationFn: ({ code, amount }: { code: string; amount: number }) => applyCouponApi(code, amount)
   });
 };

@@ -49,3 +49,16 @@ export const attributeReferralApi = async (referralCode: string) => {
   );
   return response.data.data;
 };
+
+export const fetchUserCouponsApi = async () => {
+  const response = await apiClient.get<ApiResponse<any[]>>('/coupons');
+  return response.data.data || [];
+};
+
+export const applyCouponApi = async (code: string, amount: number = 500) => {
+  const response = await apiClient.post<ApiResponse<any>>('/coupons/apply', {
+    code,
+    amount
+  });
+  return response.data.data;
+};

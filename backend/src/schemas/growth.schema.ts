@@ -13,5 +13,13 @@ export const attributeReferralSchema = z.object({
   })
 });
 
+export const applyCouponSchema = z.object({
+  body: z.object({
+    code: z.string().min(1, 'Coupon code is required'),
+    amount: z.number().positive().default(500)
+  })
+});
+
 export type CheckMembershipInput = z.infer<typeof checkMembershipSchema>['body'];
 export type AttributeReferralInput = z.infer<typeof attributeReferralSchema>['body'];
+export type ApplyCouponInput = z.infer<typeof applyCouponSchema>['body'];

@@ -2,8 +2,13 @@ import { Request, Response } from 'express';
 import { ApiResponse } from '@zero-delala/shared';
 import { prisma } from '../db/prisma.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { AppError } from '../utils/AppError.js';
 import { verifyTelegramChannelMembership } from '../services/growth.service.js';
-import { CheckMembershipInput, AttributeReferralInput } from '../schemas/growth.schema.js';
+import {
+  CheckMembershipInput,
+  AttributeReferralInput,
+  ApplyCouponInput
+} from '../schemas/growth.schema.js';
 
 const db = prisma as any;
 
@@ -262,6 +267,87 @@ export const attributeReferral = asyncHandler(
     const response: ApiResponse<{ attributed: boolean }> = {
       success: true,
       data: { attributed: true }
+    };
+
+    res.status(200).json(response);
+  }
+);
+
+export const getUserCoupons = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+
+  const userCoupons = await db.userCoupon.findMany({
+    where: {
+      userId,
+      isUsed: false
+    },
+    include: {
+      coupon: true
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  const response: ApiResponse<typeof userCoupons> = {
+    success: true,
+    data: userCoupons
+  };
+
+  res.status(200).json(response);
+});
+
+export const applyCoupon = asyncHandler(
+  async (req: Request<{}, {}, ApplyCouponInput>, res: Response) => {
+    const userId = req.user!.id;
+    const { code, amount = 500 } = req.body;
+
+    const coupon = await db.coupon.findUnique({
+      where: { code: code.toUpperCase() }
+    });
+
+    if (!coupon || !coupon.isActive) {
+      throw new AppError('Invalid or inactive coupon code', 400, 'INVALID_COUPON');
+    }
+
+    const userCoupon = await db.userCoupon.findFirst({
+      where: {
+        userId,
+        couponId: coupon.id,
+        isUsed: false
+      }
+    });
+
+    if (!userCoupon) {
+      throw new AppError(
+        'Coupon not found in your wallet or already used',
+        400,
+        'COUPON_NOT_IN_WALLET'
+      );
+    }
+
+    if (userCoupon.expiresAt && new Date(userCoupon.expiresAt) < new Date()) {
+      throw new AppError('Coupon has expired', 400, 'COUPON_EXPIRED');
+    }
+
+    const discountAmount = Math.round((amount * coupon.discountPercent) / 100);
+    const finalAmount = Math.max(0, amount - discountAmount);
+
+    const response: ApiResponse<{
+      code: string;
+      discountPercent: number;
+      originalAmount: number;
+      discountAmount: number;
+      finalAmount: number;
+      userCouponId: string;
+    }> = {
+      success: true,
+      data: {
+        code: coupon.code,
+        discountPercent: coupon.discountPercent,
+        originalAmount: amount,
+        discountAmount,
+        finalAmount,
+        userCouponId: userCoupon.id
+      }
     };
 
     res.status(200).json(response);
